@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8b3a99af98e3f241ad471cd23d41965, type: 3}
   m_Name: New Mission
   m_EditorClassIdentifier: 
-  missionName: 
-  durationSeconds: 5
-  reqCombat: 1
-  reqVigor: 5
-  reqSpeed: 1
-  reqCharisma: 4
-  reqIntelligence: 1
+  missionName: Hostage
+  durationSeconds: 4
+  reqCombat: 2
+  reqVigor: 4
+  reqSpeed: 3
+  reqCharisma: 2
+  reqIntelligence: 3

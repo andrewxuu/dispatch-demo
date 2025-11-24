@@ -20,7 +20,7 @@ public class DotController : MonoBehaviour
         finishTime = Time.time + duration;
         isRunning = true;
 
-        transform.position = Vector3.zero; // Reset center
+        transform.localPosition = Vector3.zero; // Reset center
 
         rb.linearVelocity = Random.insideUnitCircle.normalized * speed; // Launch
     }

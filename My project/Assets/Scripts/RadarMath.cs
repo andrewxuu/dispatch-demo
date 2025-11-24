@@ -74,4 +74,20 @@ public static class RadarMath
         return false;
     }
 
+    public static float CalculatePolygonArea(Vector2[] points)
+    {
+        float area = 0f;
+        int j = points.Length - 1; // The previous vertex
+
+        for (int i = 0; i < points.Length; i++)
+        {
+            // (x2 - x1) * (y2 + y1) / 2 is one variation, 
+            // but the cross product method is standard for game vectors:
+            area += (points[j].x + points[i].x) * (points[j].y - points[i].y);
+            j = i; // Move j to current
+        }
+
+        return Mathf.Abs(area / 2f);
+    }
+
 }
