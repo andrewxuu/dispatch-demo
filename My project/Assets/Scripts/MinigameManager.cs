@@ -2,15 +2,27 @@ using UnityEngine;
 
 public class MinigameManager : MonoBehaviour
 {
-    [Header("Visuals")]
-    public EdgeCollider2D heroBoundary;
-    public LineRenderer heroLine;
-    public PolygonCollider2D missionZone;
-    public LineRenderer missionLine;
+    [Header("Mission")]
+    public EdgeCollider2D boundaryCollider;
+    public PolygonDisplay boundaryDisplay; 
+
+    [Header("Hero")]
+    public PolygonCollider2D successZoneCollider;
+    public PolygonDisplay successZoneDisplay;
+
+    public PolygonDisplay overlapDisplay; // Drag your 'OverlapZone' here
+
+    [Header("Materials")]
+    public Material defaultMissionMat; 
+    public Material successMissionMat; 
+    public Material failureOverlapMat; 
 
     [Header("Setup")]
     public float graphRadius = 4f; 
     public DotController dot;
+
+    private int[] currentHeroStats;
+    private int[] currentMissionStats;
     
     public HeroStats testHero;
     public MissionTemplate testMission;
@@ -26,25 +38,80 @@ public class MinigameManager : MonoBehaviour
         //Get Stats
         int[] hStats = { hero.combat, hero.vigor, hero.speed, hero.charisma, hero.intelligence };
         int[] mStats = { mission.reqCombat, mission.reqVigor, mission.reqSpeed, mission.reqCharisma, mission.reqIntelligence };
-
+        
+        currentHeroStats = hStats; 
+        currentMissionStats = mStats; 
+        
         //Calculate Shapes
         Vector2[] heroPoints = RadarMath.CalculateVertices(hStats, graphRadius);
         Vector2[] missionPoints = RadarMath.CalculateVertices(mStats, graphRadius);
 
-        //Update Hero Boundary (Needs loop closed for EdgeCollider)
-        Vector2[] loopedHero = new Vector2[6];
-        System.Array.Copy(heroPoints, loopedHero, 5);
-        loopedHero[5] = heroPoints[0];
+        Vector2[] overlapPoints = RadarMath.CalculateComplexIntersection(heroPoints, missionPoints);
+
+        // Update Visuals
+        boundaryDisplay.UpdateShape(missionPoints);
+        successZoneDisplay.UpdateShape(heroPoints);
+
+        overlapDisplay.UpdateShape(overlapPoints);
+        overlapDisplay.gameObject.SetActive(false);
+
+        //CHECK: Guaranteed Win (Hero Stats > Mission Stats)
+        if (CheckIfGuaranteedWin(hStats, mStats))        
+        {
+            Debug.Log("Guaranteed Win!");
+            OnMissionFinished(true); // Trigger win immediately
+            dot.gameObject.SetActive(false);
+        }
+        else
+        {
+            // Reset Objects
+            dot.gameObject.SetActive(true);
+            boundaryDisplay.GetComponent<MeshRenderer>().material = defaultMissionMat;
+
+            // Update Physics
+            Vector2[] loopedMission = new Vector2[6];
+            System.Array.Copy(missionPoints, loopedMission, 5);
+            loopedMission[5] = missionPoints[0];
+            boundaryCollider.points = loopedMission;
+
+            successZoneCollider.SetPath(0, overlapPoints);
+
+            dot.StartMission(mission.durationSeconds, successZoneCollider);
+        }
+    }
+
+    public void OnMissionFinished(bool isSuccess)
+    {
+        Vector2[] mPoints = RadarMath.CalculateVertices(currentMissionStats, graphRadius);
+        Vector2[] hPoints = RadarMath.CalculateVertices(currentHeroStats, graphRadius);
+
+        //PERFECT intersection
+        Vector2[] overlapPoints = RadarMath.CalculateComplexIntersection(hPoints, mPoints);
         
-        heroBoundary.points = loopedHero;
-        heroLine.positionCount = 6;
-        for(int i=0; i<6; i++) heroLine.SetPosition(i, loopedHero[i]);
+        //Set Color & Message based on outcome
+        if (isSuccess)
+        {
+            Debug.Log("<color=green>MISSION SUCCESS!</color>");
+            overlapDisplay.GetComponent<MeshRenderer>().material = successMissionMat; // Green
+        }
+        else
+        {
+            Debug.Log("<color=red>MISSION FAILED.</color>");
+            overlapDisplay.GetComponent<MeshRenderer>().material = failureOverlapMat; // Red
+        }
 
-        //Update Mission Zone
-        missionZone.SetPath(0, missionPoints);
-        missionLine.positionCount = 5; 
-        for(int i=0; i<5; i++) missionLine.SetPosition(i, missionPoints[i]);
+        overlapDisplay.gameObject.SetActive(true);
+    }
 
-        dot.StartMission(mission.durationSeconds, missionZone);
+    bool CheckIfGuaranteedWin(int[] heroStats, int[] missionStats)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            if (heroStats[i] < missionStats[i])
+            {
+                return false; // Not a guaranteed success
+            }
+        }
+        return true;
     }
 }

@@ -3,20 +3,25 @@ using UnityEngine;
 public class DotController : MonoBehaviour
 {
     public float speed = 5f;
+    public MinigameManager manager; 
+    
     private Rigidbody2D rb;
-    private Collider2D targetMissionZone;
+    private Collider2D targetZone;
     private float finishTime;
     private bool isRunning = false;
 
+    [HideInInspector] public bool forceWin = false;
+
     void Awake() => rb = GetComponent<Rigidbody2D>();
 
-    public void StartMission(float duration, Collider2D missionZone)
+    public void StartMission(float duration, Collider2D zone)
     {
-        targetMissionZone = missionZone;
+        targetZone = zone;
         finishTime = Time.time + duration;
         isRunning = true;
 
         transform.position = Vector3.zero; // Reset center
+
         rb.linearVelocity = Random.insideUnitCircle.normalized * speed; // Launch
     }
 
@@ -31,17 +36,17 @@ public class DotController : MonoBehaviour
     void FinishMission()
     {
         isRunning = false;
-        rb.linearVelocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero; //Stop Ball 
 
-        // CHECK: Is Dot in Mission Zone
+        bool isSuccess = forceWin || targetZone.OverlapPoint(transform.position);
 
-        if (targetMissionZone.OverlapPoint(transform.position))
+        if (manager != null)
         {
-            Debug.Log("<color=green>SUCCESS! Landed in zone.</color>");
+            manager.OnMissionFinished(isSuccess);
         }
         else
         {
-            Debug.Log("<color=red>FAILED. Landed outside.</color>");
+            Debug.LogError("Manager is not assigned on DotController!");
         }
     }
 }

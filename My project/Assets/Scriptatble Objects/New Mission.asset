@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   missionName: 
   durationSeconds: 5
-  reqCombat: 0
-  reqVigor: 0
-  reqSpeed: 0
-  reqCharisma: 0
-  reqIntelligence: 0
+  reqCombat: 1
+  reqVigor: 5
+  reqSpeed: 1
+  reqCharisma: 4
+  reqIntelligence: 1

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Alpha
   m_EditorClassIdentifier: 
   heroName: 
-  combat: 0
-  vigor: 0
-  speed: 0
-  charisma: 0
-  intelligence: 0
+  combat: 1
+  vigor: 3
+  speed: 2
+  charisma: 1
+  intelligence: 2
