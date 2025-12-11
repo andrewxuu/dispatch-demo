@@ -25,6 +25,10 @@ public class MinigameManager : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI percentageText; 
 
+    [Header("Results UI")]
+    public GameObject resultsPanel;      // Drag 'ResultsPanel' here
+    public TextMeshProUGUI resultsTitle; 
+
     private int[] currentHeroStats;
     private int[] currentMissionStats;
     
@@ -41,6 +45,28 @@ public class MinigameManager : MonoBehaviour
     }
     */
 
+    void Awake()
+    {
+        // 1. Force the Percentage Text OFF at startup
+        if (percentageText != null) 
+        {
+            percentageText.text = "";
+            percentageText.gameObject.SetActive(false);
+        }
+
+        // 2. Force the Mission Cage OFF at startup (Optional, if you want it hidden too)
+        if (boundaryDisplay != null) 
+        {
+            boundaryDisplay.gameObject.SetActive(false);
+        }
+
+        // 3. Force the Ball OFF
+        if (dot != null)
+        {
+            dot.gameObject.SetActive(false);
+        }
+    }
+
     public void SetupPreview(HeroStats hero, MissionTemplate mission)
     {
         pendingHero = hero;
@@ -50,34 +76,63 @@ public class MinigameManager : MonoBehaviour
         currentHeroStats = new int[] { hero.combat, hero.vigor, hero.speed, hero.charisma, hero.intelligence };
         currentMissionStats = new int[] { mission.reqCombat, mission.reqVigor, mission.reqSpeed, mission.reqCharisma, mission.reqIntelligence };
 
-        // Calculate Visuals ONLY
+        // 1. Calculate Visuals
         Vector2[] missionPoints = RadarMath.CalculateVertices(currentMissionStats, graphRadius);
         Vector2[] heroPoints = RadarMath.CalculateVertices(currentHeroStats, graphRadius);
         Vector2[] overlapPoints = RadarMath.CalculateComplexIntersection(heroPoints, missionPoints);
 
-        // Update Shapes
+        // 2. Update Shapes
+        // We still UPDATE the shape data, but we hide the object immediately after
         boundaryDisplay.UpdateShape(missionPoints);
         successZoneDisplay.UpdateShape(heroPoints);
         overlapDisplay.UpdateShape(overlapPoints);
         
-        // Reset Visuals
+        // --- VISIBILITY CHANGES ---
+        // SHOW the Hero (Yellow)
+        successZoneDisplay.gameObject.SetActive(true);
+
+        // HIDE the Mission Cage (Red/Grey) until dispatch
+        boundaryDisplay.gameObject.SetActive(false); 
         boundaryDisplay.GetComponent<MeshRenderer>().material = defaultMissionMat;
+
+        // HIDE the Overlap Zone
         overlapDisplay.gameObject.SetActive(false);
         
-        // HIDE THE BALL for now (It's just a preview)
+        // HIDE the Ball
         dot.gameObject.SetActive(false);
         
-        // Update Percentage Text
-        float missionArea = RadarMath.CalculatePolygonArea(missionPoints);
-        float overlapArea = RadarMath.CalculatePolygonArea(overlapPoints);
-        float chance = (missionArea > 0.01f) ? (overlapArea / missionArea) * 100f : 0f;
-        if(percentageText != null) percentageText.text = $"{Mathf.Clamp(chance, 0, 100):F1}%";
+        // HIDE the Text
+        if(percentageText != null) 
+        {
+            percentageText.text = ""; // Clear text
+            percentageText.gameObject.SetActive(false); // Hide object
+        }
     }
 
-    // 2. NEW FUNCTION: Actually start the bouncing
     public void ConfirmAndStart()
     {
         if (pendingHero == null || pendingMission == null) return;
+
+        // --- VISIBILITY CHANGES ---
+        // 1. REVEAL the Mission Cage now
+        boundaryDisplay.gameObject.SetActive(true);
+
+        // 2. REVEAL and Calculate the Text now
+        if (percentageText != null)
+        {
+            Vector2[] mPoints = RadarMath.CalculateVertices(currentMissionStats, graphRadius);
+            Vector2[] hPoints = RadarMath.CalculateVertices(currentHeroStats, graphRadius);
+            Vector2[] oPoints = RadarMath.CalculateComplexIntersection(hPoints, mPoints);
+
+            float missionArea = RadarMath.CalculatePolygonArea(mPoints);
+            float overlapArea = RadarMath.CalculatePolygonArea(oPoints);
+            float chance = (missionArea > 0.01f) ? (overlapArea / missionArea) * 100f : 0f;
+            
+            percentageText.text = $"{Mathf.Clamp(chance, 0, 100):F1}%";
+            percentageText.gameObject.SetActive(true);
+        }
+
+        // ---------------------------
 
         // Guaranteed Win Check
         if (CheckIfGuaranteedWin(currentHeroStats, currentMissionStats))
@@ -106,25 +161,46 @@ public class MinigameManager : MonoBehaviour
 
     public void OnMissionFinished(bool isSuccess)
     {
+        // Stop the ball physics (Optional, keeps things clean)
+        dot.gameObject.SetActive(false);
+
+        // Update the Overlap Visuals (Green/Red)
         Vector2[] mPoints = RadarMath.CalculateVertices(currentMissionStats, graphRadius);
         Vector2[] hPoints = RadarMath.CalculateVertices(currentHeroStats, graphRadius);
-
-        //PERFECT intersection
         Vector2[] overlapPoints = RadarMath.CalculateComplexIntersection(hPoints, mPoints);
-        
-        //Set Color & Message based on outcome
-        if (isSuccess)
-        {
-            Debug.Log("<color=green>MISSION SUCCESS!</color>");
-            overlapDisplay.GetComponent<MeshRenderer>().material = successMissionMat; // Green
-        }
-        else
-        {
-            Debug.Log("<color=red>MISSION FAILED.</color>");
-            overlapDisplay.GetComponent<MeshRenderer>().material = failureOverlapMat; // Red
-        }
-
+        overlapDisplay.UpdateShape(overlapPoints);
         overlapDisplay.gameObject.SetActive(true);
+
+        // Show the Results Panel
+        if (resultsPanel != null)
+        {
+            resultsPanel.SetActive(true);
+            
+            if (isSuccess)
+            {
+                resultsTitle.text = "MISSION SUCCESS";
+                resultsTitle.color = Color.green;
+                overlapDisplay.GetComponent<MeshRenderer>().material = successMissionMat;
+            }
+            else
+            {
+                resultsTitle.text = "MISSION FAILED";
+                resultsTitle.color = Color.red;
+                overlapDisplay.GetComponent<MeshRenderer>().material = failureOverlapMat;
+            }
+        }
+    }
+
+    public void ResetGameVisuals()
+    {
+        // Hide Results
+        if (resultsPanel != null) resultsPanel.SetActive(false);
+
+        // Hide Game Objects
+        boundaryDisplay.gameObject.SetActive(false);
+        overlapDisplay.gameObject.SetActive(false);
+        dot.gameObject.SetActive(false);
+        if(percentageText != null) percentageText.gameObject.SetActive(false);
     }
 
     bool CheckIfGuaranteedWin(int[] heroStats, int[] missionStats)

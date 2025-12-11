@@ -12,10 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8b3a99af98e3f241ad471cd23d41965, type: 3}
   m_Name: New Mission
   m_EditorClassIdentifier: 
-  missionName: Hostage
-  durationSeconds: 4
-  reqCombat: 2
+  missionName: 'INCIDENT #402: GOLDEN OAKS RETIREMENT CENTER TYPE: WATER RESCUE'
+  missionDescription: Flash floods have trapped critical patients on the second floor
+    of Golden Oaks, requiring immediate medical extraction through fast-moving water
+  durationSeconds: 4.31
+  teamSize: 1
+  reqCombat: 4
   reqVigor: 4
-  reqSpeed: 3
-  reqCharisma: 2
-  reqIntelligence: 3
+  reqSpeed: 6
+  reqCharisma: 1
+  reqIntelligence: 6

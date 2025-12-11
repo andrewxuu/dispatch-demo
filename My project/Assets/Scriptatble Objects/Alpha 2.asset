@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 034d609447919954d8e384e02fd5580d, type: 3}
   m_Name: Alpha 2
   m_EditorClassIdentifier: 
-  heroName: Brickhouse
+  heroName: K9 Unit
   heroPortrait: {fileID: 0}
-  combat: 3
-  vigor: 4
-  speed: 4
-  charisma: 1
-  intelligence: 2
+  combat: 4
+  vigor: 1
+  speed: 1
+  charisma: 5
+  intelligence: 5

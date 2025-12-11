@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 034d609447919954d8e384e02fd5580d, type: 3}
   m_Name: Alpha 3
   m_EditorClassIdentifier: 
-  heroName: Water Boy
+  heroName: Construction
   heroPortrait: {fileID: 0}
-  combat: 3
-  vigor: 3
-  speed: 3
-  charisma: 3
-  intelligence: 3
+  combat: 4
+  vigor: 5
+  speed: 2
+  charisma: 4
+  intelligence: 2

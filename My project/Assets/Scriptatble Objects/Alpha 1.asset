@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 034d609447919954d8e384e02fd5580d, type: 3}
   m_Name: Alpha 1
   m_EditorClassIdentifier: 
-  heroName: WhizKid
+  heroName: Helicopter
   heroPortrait: {fileID: 0}
   combat: 1
-  vigor: 4
-  speed: 3
-  charisma: 1
+  vigor: 3
+  speed: 5
+  charisma: 3
   intelligence: 2

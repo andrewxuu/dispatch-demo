@@ -4,7 +4,11 @@ using UnityEngine;
 public class MissionTemplate : ScriptableObject
 {
     public string missionName;
+    [TextArea(3, 10)] 
+    public string missionDescription;
     public float durationSeconds = 3f; // Short for demo
+
+    
 
     [Header("Team Settings")]
     [Range(1, 5)] public int teamSize = 3; // <--- ADD THIS

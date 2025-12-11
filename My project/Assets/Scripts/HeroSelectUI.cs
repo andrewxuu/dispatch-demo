@@ -1,21 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections.Generic; // Required for Lists
+using System.Collections.Generic; 
 
 public class HeroSelectUI : MonoBehaviour
 {
     [Header("UI Containers")]
-    public GameObject uiStateObject;
-    public GameObject gameStateObject;
-    public Transform buttonContainer; // The Roster Bar
-    
-    // NEW: The container where slots go (under the radar)
+    public Transform buttonContainer; 
     public Transform slotsContainer; 
+
+    [Header("Text References")]
+    // NEW: Drag your "Civilian Quote" text object here
+    public TextMeshProUGUI missionDescriptionText; 
+    
+    // Optional: If you want to show the Title too
+    public TextMeshProUGUI missionTitleText;
 
     [Header("Prefabs")]
     public GameObject buttonCardPrefab;
-    public GameObject slotPrefab; // Drag 'TeamSlotTemplate' here
+    public GameObject slotPrefab; 
 
     [Header("Buttons")]
     public Button dispatchButton;
@@ -30,71 +33,56 @@ public class HeroSelectUI : MonoBehaviour
 
     void Start()
     {
-        uiStateObject.SetActive(true);
-        gameStateObject.SetActive(true);
-        
         dispatchButton.interactable = false;
         dispatchButton.onClick.AddListener(OnDispatchClicked);
 
-        // 1. Build the Roster
-        RefreshRoster();
+        // --- NEW: Update the Mission Text ---
+        if (currentMission != null)
+        {
+            if (missionDescriptionText != null) 
+                missionDescriptionText.text = currentMission.missionDescription;
 
-        // 2. Build the Slots based on Mission Data
+            if (missionTitleText != null)
+                missionTitleText.text = currentMission.missionName.ToUpper();
+        }
+        // ------------------------------------
+
+        RefreshRoster();
         GenerateMissionSlots();
     }
-
+    
 void GenerateMissionSlots()
     {
-        // A. Clear existing slots
-        foreach (Transform child in slotsContainer) Destroy(child.gameObject);
+       foreach (Transform child in slotsContainer) Destroy(child.gameObject);
         spawnedSlots.Clear();
-
-        // B. Spawn new slots based on Mission Data
-        int count = currentMission.teamSize; // <-- GETTING NUMBER FROM DATA
-
-        for (int i = 0; i < count; i++)
-        {
+        for (int i = 0; i < currentMission.teamSize; i++) {
             GameObject newSlot = Instantiate(slotPrefab, slotsContainer);
-            Image slotImg = newSlot.GetComponent<Image>();
-            
-            // Set default empty state
-            slotImg.color = new Color(0.2f, 0.2f, 0.2f, 0.5f); // Dark Grey
-            
-            spawnedSlots.Add(slotImg);
+            spawnedSlots.Add(newSlot.GetComponent<Image>());
         }
     }
 
-    void RefreshRoster()
-    {
-        foreach (Transform child in buttonContainer) Destroy(child.gameObject);
-
-        foreach (HeroStats hero in availableHeroes)
-        {
+    void RefreshRoster() 
+    { 
+         foreach (Transform child in buttonContainer) Destroy(child.gameObject);
+         foreach (HeroStats hero in availableHeroes) {
             GameObject newCard = Instantiate(buttonCardPrefab, buttonContainer);
-            
             TMP_Text nameText = newCard.transform.Find("NameText").GetComponent<TMP_Text>();
             Image portraitImg = newCard.transform.Find("PortraitImage").GetComponent<Image>();
-
             if (nameText != null) nameText.text = hero.heroName.ToUpper();
             if (portraitImg != null) portraitImg.sprite = hero.heroPortrait;
-
             newCard.GetComponent<Button>().onClick.AddListener(() => OnHeroPreview(hero, newCard));
-        }
+         }
     }
 
     void OnHeroPreview(HeroStats hero, GameObject cardObject)
     {
         gameManager.SetupPreview(hero, currentMission);
         
-        // 3. Fill the FIRST slot with the selected hero
-        // (Later, you can add logic to fill Slot 2, Slot 3, etc.)
         if (spawnedSlots.Count > 0)
         {
             spawnedSlots[0].sprite = hero.heroPortrait;
             spawnedSlots[0].color = Color.white;
         }
-
-        // Highlight Roster Card
         if (currentSelectedCard != null) 
              currentSelectedCard.GetComponent<Image>().color = new Color(0.2f, 0.2f, 0.2f); 
         
@@ -103,9 +91,21 @@ void GenerateMissionSlots()
 
         dispatchButton.interactable = true;
     }
+
     void OnDispatchClicked()
     {
-        uiStateObject.SetActive(false);
+        SetInteractivity(false); 
         gameManager.ConfirmAndStart();
+    }
+
+    public void SetInteractivity(bool isInteractable)
+    {
+        dispatchButton.interactable = isInteractable;
+
+        Button[] rosterButtons = buttonContainer.GetComponentsInChildren<Button>();
+        foreach (Button btn in rosterButtons)
+        {
+            btn.interactable = isInteractable;
+        }
     }
 }
